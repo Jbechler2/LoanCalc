@@ -1,98 +1,108 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import LoanContext from "@/context/LoanContext";
+import { Loan } from "@/types/LoanTypes";
+import { useContext } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function Index() {
+  const loanContext = useContext(LoanContext)
+  let Loan1: Loan = {
+    id: 2,
+    name: 'Testing Loan',
+    term: 48,
+    rate: 0.25,
+    principal: 1000,
+    monthlyPayment: 0,
+    totalCost: 0,
+    payoffDate: '',
+    createdAt: ''
+  }
 
-export default function HomeScreen() {
+  const handleCompare = (loan: Loan, slot: 'left' | 'right') => {
+    let replacedLoan = slot === 'left' ? loanContext.compareSlots.left: loanContext.compareSlots.right
+
+    if(replacedLoan && !loanContext.isLoanSaved(replacedLoan.id)){
+      console.log("Need to save loan before overwriting")
+    } else {
+      slot === 'left' ? loanContext.setLeftCompare(loan) : loanContext.setRightCompare(loan);
+    }
+  }
+
+  const calculateLoanDetails = (principal: number, rate: number, term: number) => {
+    if(principal > 0 && rate > 0 && term > 0){
+      Loan1 = {
+        id: 2,
+        name: '',
+        term,
+        rate,
+        principal,
+        monthlyPayment: calcMonthlyPayment(principal, rate, term),
+        totalCost: calcTotalCost(principal, rate, term),
+        payoffDate: calcPayoffDate(principal, rate, term),
+        createdAt: new Date().toISOString()
+      }
+    } else {
+      //Todo: Add error handling
+    }
+  }
+
+  const calcMonthlyPayment = (principal: number, rate: number, term: number) => {
+
+  }
+  const calcTotalCost = (principal: number, rate: number, term: number) => {
+    
+  }
+  const calcPayoffDate = (principal: number, rate: number, term: number) => {
+    
+  }
+  
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
-
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "flex-start",
+        alignItems: "center",
+      }}
+    >
+      <Text style={styles.header}>Principal</Text>
+      <TextInput placeholderTextColor="#c0c0c0" style={styles.inputField} placeholder="1000" />
+      <Text style={styles.header}>Rate</Text>
+      <TextInput placeholderTextColor="#c0c0c0" style={styles.inputField} placeholder="0.25"/>
+      <Text style={styles.header}>Term</Text>
+      <TextInput placeholderTextColor="#c0c0c0" style={styles.inputField} placeholder="48"/>
+      <View style={styles.inputView}>
+        <Pressable style={styles.button} onPress={() => console.log("calculate loan details")}>
+          <Text style={styles.buttonText}>Calculate</Text>
+        </Pressable>
+      </View>
+      
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  inputField: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    borderRadius: 5,
+    width: 100,
+    color: '#666'
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  header: {
+    fontSize: 50,
+    marginTop: 10,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  inputView: {
+    paddingTop: 10
   },
-});
+  button: {
+    backgroundColor: '#2196F3',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 25,
+  },
+  buttonText: {
+    color: '#FFF',
+    fontSize: 20
+  }
+})
