@@ -61,7 +61,7 @@ export const LoanProvider = ({ children }: LoanProviderProps) => {
       isLoanSaved,
       saveLoan,
       deleteLoan,
-      setCurrentLoan
+      currentLoan
     } as LoanContextType
   }, [compareSlots, savedLoans, currentLoan])
 

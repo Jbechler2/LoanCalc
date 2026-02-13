@@ -6,8 +6,8 @@ export type Loan = {
   term: number,
   createdAt: string
   //Calc'd fields
-  monthlyPayment: number,
-  totalCost: number,
+  monthlyPayment: string,
+  totalCost: string,
   payoffDate: string
 }
 

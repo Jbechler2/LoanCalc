@@ -1,21 +1,14 @@
 import LoanContext from "@/context/LoanContext";
 import { Loan } from "@/types/LoanTypes";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 export default function Index() {
   const loanContext = useContext(LoanContext)
-  let Loan1: Loan = {
-    id: 2,
-    name: 'Testing Loan',
-    term: 48,
-    rate: 0.25,
-    principal: 1000,
-    monthlyPayment: 0,
-    totalCost: 0,
-    payoffDate: '',
-    createdAt: ''
-  }
+  const [principalInput, setPrincipalInput] = useState('')
+  const [rateInput, setRateInput] = useState('')
+  const [termInput, setTermInput] = useState('')
+  const [currentLoan, setCurrentLoan] = useState<Loan | null>(null)
 
   const handleCompare = (loan: Loan, slot: 'left' | 'right') => {
     let replacedLoan = slot === 'left' ? loanContext.compareSlots.left: loanContext.compareSlots.right
@@ -28,31 +21,46 @@ export default function Index() {
   }
 
   const calculateLoanDetails = (principal: number, rate: number, term: number) => {
+
     if(principal > 0 && rate > 0 && term > 0){
-      Loan1 = {
-        id: 2,
+      const newLoan: Loan = {
+        id: new Date().getTime(),
         name: '',
         term,
         rate,
         principal,
-        monthlyPayment: calcMonthlyPayment(principal, rate, term),
-        totalCost: calcTotalCost(principal, rate, term),
-        payoffDate: calcPayoffDate(principal, rate, term),
+        monthlyPayment: '',
+        totalCost: '',
+        payoffDate: '',
         createdAt: new Date().toISOString()
       }
+
+      newLoan.monthlyPayment = calcMonthlyPayment(principal, rate, term)
+      newLoan.totalCost = calcTotalCost(Number.parseFloat(newLoan.monthlyPayment), term)
+      newLoan.payoffDate = calcPayoffDate(newLoan.createdAt, newLoan.term)
+
+      setCurrentLoan(newLoan)
     } else {
       //Todo: Add error handling
     }
   }
 
-  const calcMonthlyPayment = (principal: number, rate: number, term: number) => {
+  const calcMonthlyPayment = (principal: number, rate: number, term: number): string => {
+    let monthlyRate = (rate/100) / 12;
+    let top = ((1 + monthlyRate)**term)*monthlyRate
+    let bottom = ((1+monthlyRate)**term)-1
+    let payment = principal*(top/bottom)
 
+    return payment.toFixed(2);
   }
-  const calcTotalCost = (principal: number, rate: number, term: number) => {
-    
+  const calcTotalCost = (monthlyPayment: number, term: number): string => {
+    return (monthlyPayment*term).toFixed(2);
   }
-  const calcPayoffDate = (principal: number, rate: number, term: number) => {
-    
+  const calcPayoffDate = (createdAt: string, term: number) => {
+    const loanStart = new Date(createdAt)
+    loanStart.setMonth(loanStart.getMonth() + term)
+
+    return loanStart.toISOString()
   }
   
   return (
@@ -63,17 +71,47 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <Text style={styles.header}>Principal</Text>
-      <TextInput placeholderTextColor="#c0c0c0" style={styles.inputField} placeholder="1000" />
-      <Text style={styles.header}>Rate</Text>
-      <TextInput placeholderTextColor="#c0c0c0" style={styles.inputField} placeholder="0.25"/>
-      <Text style={styles.header}>Term</Text>
-      <TextInput placeholderTextColor="#c0c0c0" style={styles.inputField} placeholder="48"/>
-      <View style={styles.inputView}>
-        <Pressable style={styles.button} onPress={() => console.log("calculate loan details")}>
-          <Text style={styles.buttonText}>Calculate</Text>
-        </Pressable>
-      </View>
+      {currentLoan ? (
+        <View>
+          <Text style={styles.label}>Principal: </Text>
+          <Text style={styles.labelValue}>{currentLoan.principal}</Text>
+          <Text style={styles.label}>Rate: </Text>
+          <Text style={styles.labelValue}>{currentLoan.rate}</Text>
+          <Text style={styles.label}>Term: </Text>
+          <Text style={styles.labelValue}>{currentLoan.term}</Text>
+          <Text style={styles.label}>Monthly Payment: </Text>
+          <Text style={styles.labelValue}>{currentLoan.monthlyPayment}</Text>
+          <Text style={styles.label}>Payoff Date: </Text>
+          <Text style={styles.labelValue}>{new Date(currentLoan.payoffDate).toLocaleDateString()}</Text>
+          <Text style={styles.label}>Total Cost: </Text>
+          <Text style={styles.labelValue}>{currentLoan.totalCost}</Text>
+          <Pressable style={styles.button}>
+            <Text style={styles.buttonText} onPress={() => currentLoan ? loanContext.setLeftCompare(currentLoan) : console.log("failed to set compare")}>Compare</Text>
+          </Pressable>
+          <Pressable style={styles.button} onPress={() => currentLoan && !loanContext.isLoanSaved(currentLoan.id) ? loanContext.saveLoan(currentLoan) : console.log("failed to save loan")}>
+            <Text style={styles.buttonText}>Save Loan</Text>
+          </Pressable>
+          <Pressable style={styles.button} onPress={() => setCurrentLoan(null)}>
+            <Text style={styles.buttonText}>Back to Loan Terms</Text>
+          </Pressable>
+        </View>
+      ) 
+      : (
+        <View>
+          <Text style={styles.header}>Principal</Text>
+          <TextInput placeholderTextColor="#c0c0c0" style={styles.inputField} placeholder="1000" onChangeText={(newPrincipal) => setPrincipalInput(newPrincipal)} />
+          <Text style={styles.header}>Rate</Text>
+          <TextInput placeholderTextColor="#c0c0c0" style={styles.inputField} placeholder="0.25" onChangeText={(newRate) => setRateInput(newRate)}/>
+          <Text style={styles.header}>Term</Text>
+          <TextInput placeholderTextColor="#c0c0c0" style={styles.inputField} placeholder="48" onChangeText={(newTerm) => setTermInput(newTerm)}/>
+          <View style={styles.inputView}>
+            <Pressable style={styles.button} onPress={() => calculateLoanDetails(Number.parseFloat(principalInput), Number.parseFloat(rateInput), Number.parseFloat(termInput))}>
+              <Text style={styles.buttonText}>Calculate</Text>
+            </Pressable>
+          </View>
+        </View>
+       )}
+      
       
     </View>
   );
@@ -104,5 +142,12 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFF',
     fontSize: 20
+  },
+  label: {
+    fontSize: 15,
+    fontWeight: 'bold'
+  },
+  labelValue: {
+    fontSize: 15
   }
 })
