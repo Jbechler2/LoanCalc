@@ -1,7 +1,7 @@
 import LoanContext from "@/context/LoanContext";
 import { Loan } from "@/types/LoanTypes";
 import { useContext, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 export default function Index() {
   const loanContext = useContext(LoanContext)
@@ -9,6 +9,8 @@ export default function Index() {
   const [rateInput, setRateInput] = useState('')
   const [termInput, setTermInput] = useState('')
   const [currentLoan, setCurrentLoan] = useState<Loan | null>(null)
+  const [ nameModalVisible, setNameModalVisible] = useState(false)
+  const [loanName, setLoanName] = useState('')
 
   const handleCompare = (loan: Loan, slot: 'left' | 'right') => {
     let replacedLoan = slot === 'left' ? loanContext.compareSlots.left: loanContext.compareSlots.right
@@ -88,12 +90,42 @@ export default function Index() {
           <Pressable style={styles.button}>
             <Text style={styles.buttonText} onPress={() => currentLoan ? loanContext.setLeftCompare(currentLoan) : console.log("failed to set compare")}>Compare</Text>
           </Pressable>
-          <Pressable style={styles.button} onPress={() => currentLoan && !loanContext.isLoanSaved(currentLoan.id) ? loanContext.saveLoan(currentLoan) : console.log("failed to save loan")}>
+          <Pressable style={styles.button} onPress={() => setNameModalVisible(true)}>
             <Text style={styles.buttonText}>Save Loan</Text>
           </Pressable>
           <Pressable style={styles.button} onPress={() => setCurrentLoan(null)}>
             <Text style={styles.buttonText}>Back to Loan Terms</Text>
           </Pressable>
+
+          <Modal 
+            visible={nameModalVisible} 
+            onRequestClose={() => setNameModalVisible(false)}
+            transparent={true}
+          >
+            <View
+              style={styles.modalOverlay}
+            >
+              <View
+                style={styles.modalContent}
+              >
+                <Text style={styles.modalHeader}>Loan Name:</Text>
+                  <TextInput 
+                    style={styles.modalInput} 
+                    placeholderTextColor="#c0c0c0" 
+                    placeholder="New Auto Loan"
+                    onChangeText={(newLoanName) => setLoanName(newLoanName)}
+                  />
+                  <View style={styles.modalButtons}>
+                    <Pressable style={styles.button} onPress={() => setNameModalVisible(false)}>
+                      <Text style={styles.buttonText}>Cancel</Text>
+                    </Pressable>
+                    <Pressable style={styles.button} onPress={() => {currentLoan.name = loanName; loanContext.saveLoan(currentLoan); setNameModalVisible(false)}}>
+                      <Text style={styles.buttonText}>Save Loan</Text>
+                    </Pressable>
+                  </View>
+              </View>
+            </View>
+          </Modal>
         </View>
       ) 
       : (
@@ -111,8 +143,6 @@ export default function Index() {
           </View>
         </View>
        )}
-      
-      
     </View>
   );
 }
@@ -149,5 +179,39 @@ const styles = StyleSheet.create({
   },
   labelValue: {
     fontSize: 15
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%', 
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalButtons: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    borderRadius: 5,
+    width: 'auto',
+    color: '#666'
+  },
+  modalHeader: { 
+    fontSize: 25,
+    marginBottom: 10
   }
 })
