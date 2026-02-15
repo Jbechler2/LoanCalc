@@ -9,18 +9,9 @@ export default function Index() {
   const [rateInput, setRateInput] = useState('')
   const [termInput, setTermInput] = useState('')
   const [currentLoan, setCurrentLoan] = useState<Loan | null>(null)
-  const [ nameModalVisible, setNameModalVisible] = useState(false)
+  const [nameModalVisible, setNameModalVisible] = useState(false)
   const [loanName, setLoanName] = useState('')
-
-  const handleCompare = (loan: Loan, slot: 'left' | 'right') => {
-    let replacedLoan = slot === 'left' ? loanContext.compareSlots.left: loanContext.compareSlots.right
-
-    if(replacedLoan && !loanContext.isLoanSaved(replacedLoan.id)){
-      console.log("Need to save loan before overwriting")
-    } else {
-      slot === 'left' ? loanContext.setLeftCompare(loan) : loanContext.setRightCompare(loan);
-    }
-  }
+  const [compareModalVisible, setCompareModalVisible] = useState(false)
 
   const calculateLoanDetails = (principal: number, rate: number, term: number) => {
 
@@ -88,7 +79,7 @@ export default function Index() {
           <Text style={styles.label}>Total Cost: </Text>
           <Text style={styles.labelValue}>{currentLoan.totalCost}</Text>
           <Pressable style={styles.button}>
-            <Text style={styles.buttonText} onPress={() => currentLoan ? loanContext.setLeftCompare(currentLoan) : console.log("failed to set compare")}>Compare</Text>
+            <Text style={styles.buttonText} onPress={() => setCompareModalVisible(true)}>Compare</Text>
           </Pressable>
           <Pressable style={styles.button} onPress={() => setNameModalVisible(true)}>
             <Text style={styles.buttonText}>Save Loan</Text>
@@ -121,6 +112,29 @@ export default function Index() {
                     </Pressable>
                     <Pressable style={styles.button} onPress={() => {currentLoan.name = loanName; loanContext.saveLoan(currentLoan); setNameModalVisible(false)}}>
                       <Text style={styles.buttonText}>Save Loan</Text>
+                    </Pressable>
+                  </View>
+              </View>
+            </View>
+          </Modal>
+          <Modal 
+            visible={compareModalVisible} 
+            onRequestClose={() => setCompareModalVisible(false)}
+            transparent={true}
+          >
+            <View
+              style={styles.modalOverlay}
+            >
+              <View
+                style={styles.modalContent}
+              >
+                <Text style={styles.modalHeader}>Which Slot?</Text>
+                  <View style={styles.modalButtons}>
+                    <Pressable style={styles.button} onPress={() => {loanContext.setLeftCompare(currentLoan);setCompareModalVisible(false)}}>
+                      <Text style={styles.buttonText}>Left</Text>
+                    </Pressable>
+                    <Pressable style={styles.button} onPress={() => {loanContext.setRightCompare(currentLoan);setCompareModalVisible(false)}}>
+                      <Text style={styles.buttonText}>Right</Text>
                     </Pressable>
                   </View>
               </View>

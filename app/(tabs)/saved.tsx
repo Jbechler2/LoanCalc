@@ -1,11 +1,14 @@
 import LoanContext from "@/context/LoanContext";
+import { Loan } from "@/types/LoanTypes";
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useContext } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useContext, useState } from "react";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
   const loanContext = useContext(LoanContext)
   let savedLoanListItems = []
+  const [compareModalVisible, setCompareModalVisible] = useState(false)
+  const [currentLoan, setCurrentLoan] = useState<Loan | null>(null)
 
   savedLoanListItems = loanContext.savedLoans.map(loan => (
     <View style={styles.loanListItem} key={loan.id}>
@@ -18,7 +21,7 @@ export default function Index() {
         </View>
       </View>
       <View style={styles.listItemActions}>
-        <Pressable style={styles.button}>
+        <Pressable style={styles.button} onPress={() => {setCurrentLoan(loan);setCompareModalVisible(true)}}>
           <MaterialIcons style={styles.icons} size={15} name='compare'/>
         </Pressable>
         <Pressable style={styles.button} onPress={() => loanContext.deleteLoan(loan.id)}>
@@ -37,6 +40,29 @@ export default function Index() {
       }}
     >
       {savedLoanListItems}
+      <Modal 
+        visible={compareModalVisible} 
+        onRequestClose={() => setCompareModalVisible(false)}
+        transparent={true}
+      >
+        <View
+          style={styles.modalOverlay}
+        >
+          <View
+            style={styles.modalContent}
+          >
+            <Text style={styles.modalHeader}>Which Slot?</Text>
+              <View style={styles.modalButtons}>
+                <Pressable style={styles.button} onPress={() => {if(currentLoan)loanContext.setLeftCompare(currentLoan);setCompareModalVisible(false)}}>
+                  <Text style={styles.buttonText}>Left</Text>
+                </Pressable>
+                <Pressable style={styles.button} onPress={() => {if(currentLoan)loanContext.setRightCompare(currentLoan);setCompareModalVisible(false)}}>
+                  <Text style={styles.buttonText}>Right</Text>
+                </Pressable>
+              </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -72,6 +98,10 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginTop: 25,
   },
+  buttonText: {
+    color: '#FFF',
+    fontSize: 20
+  },
   listItemActions: {
     display: 'flex',
     flexDirection: 'row',
@@ -82,5 +112,39 @@ const styles = StyleSheet.create({
   },
   icons: {
     color: '#fff',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%', 
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalButtons: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    borderRadius: 5,
+    width: 'auto',
+    color: '#666'
+  },
+  modalHeader: { 
+    fontSize: 25,
+    marginBottom: 10
   }
 })
